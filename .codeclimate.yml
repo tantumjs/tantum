@@ -1,0 +1,7 @@
+version: '2'
+exclude_patterns:
+  - '**/__tests__/**'
+  - '**/*.d.ts'
+  - '**/node_modules/**'
+  - '**/coverage/**'
+  - '**lib/**'

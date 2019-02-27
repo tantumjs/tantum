@@ -1,0 +1,46 @@
+{
+  "name": "@tantum/babel",
+  "version": "0.0.0",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "@tantum/core": "^0.0.1",
+    "babel-loader": "^8.0.5"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.7",
+    "jest": "^24.1.0",
+    "ts-jest": "^24.0.0",
+    "typescript": "^3.3.3333"
+  },
+  "scripts": {
+    "test": "jest --coverage",
+    "compile": "tsc --p tsconfig.publish.json"
+  },
+  "jest": {
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "/__tests__/.*\\.test\\.ts?$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.{ts,js}",
+      "!src/__tests__/helpers.ts"
+    ]
+  }
+}
