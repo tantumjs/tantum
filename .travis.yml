@@ -18,6 +18,7 @@ install:
   - git clone https://github.com/$TRAVIS_REPO_SLUG.git $TRAVIS_REPO_SLUG
   - yarn
   - lerna bootstrap
+  - lerna run compile
 
 jobs:
   include:
@@ -44,6 +45,5 @@ jobs:
       if: tag IS blank AND branch = master AND type != pull_request
       script:
         - npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
-        - lerna run compile
         - lerna version --conventional-commits --changelog-preset eslint --yes
         - lerna publish --yes
