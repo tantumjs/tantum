@@ -25,7 +25,7 @@ install:
 jobs:
   include:
     - stage: test
-      if: tag IS blank
+      if: tag IS blank and branch != next
       before_script:
         - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
         - chmod +x ./cc-test-reporter
@@ -49,4 +49,4 @@ jobs:
         - npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
         - git checkout next
         - lerna version --conventional-commits --changelog-preset eslint --yes --allow-branch next
-        - lerna publish --yes
+        - lerna publish from-package --yes
