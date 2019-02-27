@@ -4,7 +4,7 @@ import {
   withEntry,
   withContext,
   withPlugins,
-  withRules,
+  withModule,
   withDevtool,
   withDebug,
   withBail,
@@ -17,6 +17,7 @@ import {
   withStats,
   compose,
   withResolve,
+  withRules,
 } from '../';
 
 describe('compose', () => {
