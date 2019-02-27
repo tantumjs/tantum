@@ -42,8 +42,8 @@ jobs:
         - ./cc-test-reporter upload-coverage
 
     - stage: publish
-      if: tag IS blank AND branch = master AND type != pull_request
+      if: tag IS blank AND branch = next AND type != pull_request
       script:
         - npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
-        - lerna version --conventional-commits --changelog-preset eslint --yes
+        - lerna version --conventional-commits --changelog-preset eslint --yes --allow-branch next
         - lerna publish --yes
