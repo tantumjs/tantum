@@ -45,5 +45,6 @@ jobs:
       if: tag IS blank AND branch = next AND type != pull_request
       script:
         - npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
+        - git checkout $TRAVIS_BRANCH
         - lerna version --conventional-commits --changelog-preset eslint --yes --allow-branch next
         - lerna publish --yes
