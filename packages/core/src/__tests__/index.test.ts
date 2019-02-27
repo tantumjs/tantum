@@ -18,6 +18,7 @@ import {
   compose,
   withResolve,
   withRules,
+  withHotModuleReplacement,
 } from '../';
 
 describe('compose', () => {
@@ -229,6 +230,14 @@ describe('withPlugins', () => {
       ),
     ).toEqual({
       plugins: [plugin1, plugin2],
+    });
+  });
+});
+
+describe('withHotModuleReplacement', () => {
+  test('should add the plugin', () => {
+    expect(compose(withHotModuleReplacement())).toEqual({
+      plugins: [new webpack.HotModuleReplacementPlugin()],
     });
   });
 });

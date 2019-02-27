@@ -138,6 +138,13 @@ export function withRules(...rules: webpack.Rule[]) {
 }
 
 /**
+ * Adds the hot module replacement plugin.
+ */
+export function withHotModuleReplacement() {
+  return withPlugins(new webpack.HotModuleReplacementPlugin());
+}
+
+/**
  * Sets resolve values.
  *
  * @param resolve Resolve to set.
