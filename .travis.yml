@@ -15,9 +15,9 @@ before_install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash
 
 install:
-  - git config --global user.email ${GITHUB_EMAIL}
-  - git config --global user.name ${GITHUB_USER}
-  - git remote set-url origin "https://${GITHUB_TOKEN}@github.com/${$TRAVIS_REPO_SLUG}.git"
+  - git config --global user.email $GITHUB_EMAIL
+  - git config --global user.name $GITHUB_USER
+  - git remote set-url origin "https://$GITHUB_TOKEN@github.com/$TRAVIS_REPO_SLUG.git"
   - yarn
   - lerna bootstrap
   - lerna run compile
