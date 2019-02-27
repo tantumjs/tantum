@@ -45,5 +45,5 @@ jobs:
       script:
         - npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
         - lerna run compile
-        - lerna version --conventional-commits --changelog-preset eslint --amend --yes
+        - lerna version --conventional-commits --changelog-preset eslint --yes
         - lerna publish --yes
