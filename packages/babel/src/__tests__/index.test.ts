@@ -1,8 +1,9 @@
 import { withBabel } from '../';
+import { compose } from '@tantum/core';
 
 describe('withBabel', () => {
   test('should add a default babel rule', () => {
-    expect(withBabel()({})).toEqual({
+    expect(compose(withBabel())).toEqual({
       module: {
         rules: [
           {
@@ -20,10 +21,12 @@ describe('withBabel', () => {
     };
 
     expect(
-      withBabel({
-        include: /src/,
-        options,
-      })({}),
+      compose(
+        withBabel({
+          include: /src/,
+          options,
+        }),
+      ),
     ).toEqual({
       module: {
         rules: [

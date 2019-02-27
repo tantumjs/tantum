@@ -1,4 +1,5 @@
 import * as webpack from 'webpack';
+import merge from 'webpack-merge';
 import {
   withEntry,
   withContext,
@@ -14,26 +15,85 @@ import {
   whenProduction,
   whenDevelopment,
   withStats,
+  compose,
+  withResolve,
 } from '../';
+
+describe('compose', () => {
+  test('should execute composer', () => {
+    const composer = jest.fn(configuration => configuration);
+
+    compose(composer);
+    expect(composer).toHaveBeenCalledTimes(1);
+  });
+
+  test('should execute composer with initial config', () => {
+    const composer = jest.fn(configuration => configuration);
+    const configuration: webpack.Configuration = {
+      module: {
+        rules: [],
+      },
+    };
+
+    compose(
+      composer,
+      configuration,
+    );
+
+    expect(composer).toHaveBeenCalledTimes(1);
+    expect(composer.mock.calls[0][0]).toEqual(configuration);
+  });
+
+  test('should execute composer with custom merger', () => {
+    const composer = jest.fn((configuration, merge) =>
+      merge(configuration, {}),
+    );
+
+    const merger = jest.fn((...args: webpack.Configuration[]) =>
+      merge(...args),
+    );
+
+    const configuration: webpack.Configuration = {
+      module: {
+        rules: [],
+      },
+    };
+
+    compose(
+      composer,
+      configuration,
+      merger,
+    );
+
+    expect(composer).toHaveBeenCalledTimes(1);
+    expect(composer).toHaveBeenCalledWith(configuration, merger);
+    expect(merger).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe('withEntry', () => {
   const entry1 = './src';
   const entry2 = './lib';
 
   test('should add single entry', () => {
-    expect(withEntry(entry1)({})).toEqual({
+    expect(compose(withEntry(entry1))).toEqual({
       entry: [entry1],
     });
   });
 
   test('should add multiple entries', () => {
-    expect(withEntry(entry1, entry2)({})).toEqual({
+    expect(compose(withEntry(entry1, entry2))).toEqual({
       entry: [entry1, entry2],
     });
   });
 
   test('should append entries', () => {
-    expect(withEntry(entry2)({ entry: [entry1] })).toEqual({
+    expect(
+      compose(
+        withEntry(entry2),
+        { entry: [entry1] },
+      ),
+    ).toEqual({
       entry: [entry1, entry2],
     });
   });
@@ -41,7 +101,7 @@ describe('withEntry', () => {
 
 describe('withContext', () => {
   test('should set the context', () => {
-    expect(withContext('./')({})).toEqual({
+    expect(compose(withContext('./'))).toEqual({
       context: './',
     });
   });
@@ -49,7 +109,7 @@ describe('withContext', () => {
 
 describe('withDevtool', () => {
   test('should set the devtool', () => {
-    expect(withDevtool('source-map')({})).toEqual({
+    expect(compose(withDevtool('source-map'))).toEqual({
       devtool: 'source-map',
     });
   });
@@ -57,7 +117,7 @@ describe('withDevtool', () => {
 
 describe('withDebug', () => {
   test('should set the debug flag', () => {
-    expect(withDebug(true)({})).toEqual({
+    expect(compose(withDebug(true))).toEqual({
       debug: true,
     });
   });
@@ -65,7 +125,7 @@ describe('withDebug', () => {
 
 describe('withBail', () => {
   test('should set the bail flag', () => {
-    expect(withBail(true)({})).toEqual({
+    expect(compose(withBail(true))).toEqual({
       bail: true,
     });
   });
@@ -73,7 +133,7 @@ describe('withBail', () => {
 
 describe('withMode', () => {
   test('should set the mode', () => {
-    expect(withMode('production')({})).toEqual({
+    expect(compose(withMode('production'))).toEqual({
       mode: 'production',
     });
   });
@@ -81,22 +141,28 @@ describe('withMode', () => {
 
 describe('withStats', () => {
   test('should set the stats', () => {
-    expect(withStats('errors-only')({})).toEqual({
+    expect(compose(withStats('errors-only'))).toEqual({
       stats: 'errors-only',
     });
   });
 
   test('should override if source stats are an object', () => {
-    expect(withStats('errors-only')({ stats: { errorDetails: true } })).toEqual(
-      {
-        stats: 'errors-only',
-      },
-    );
+    expect(
+      compose(
+        withStats('errors-only'),
+        { stats: { errorDetails: true } },
+      ),
+    ).toEqual({
+      stats: 'errors-only',
+    });
   });
 
   test('should merge if both are objects', () => {
     expect(
-      withStats({ assets: true })({ stats: { errorDetails: true } }),
+      compose(
+        withStats({ assets: true }),
+        { stats: { errorDetails: true } },
+      ),
     ).toEqual({
       stats: {
         assets: true,
@@ -108,7 +174,7 @@ describe('withStats', () => {
 
 describe('withOutput', () => {
   test('should set the output', () => {
-    expect(withOutput({ filename: 'index.js' })({})).toEqual({
+    expect(compose(withOutput({ filename: 'index.js' }))).toEqual({
       output: {
         filename: 'index.js',
       },
@@ -117,12 +183,15 @@ describe('withOutput', () => {
 
   test('should merge the output', () => {
     expect(
-      withOutput({ filename: 'index.js' })({
-        output: {
-          filename: 'lib.js',
-          path: './build',
+      compose(
+        withOutput({ filename: 'index.js' }),
+        {
+          output: {
+            filename: 'lib.js',
+            path: './build',
+          },
         },
-      }),
+      ),
     ).toEqual({
       output: {
         path: './build',
@@ -137,13 +206,13 @@ describe('withPlugins', () => {
   const plugin2 = new webpack.SourceMapDevToolPlugin();
 
   test('should add single plugin', () => {
-    expect(withPlugins(plugin1)({})).toEqual({
+    expect(compose(withPlugins(plugin1))).toEqual({
       plugins: [plugin1],
     });
   });
 
   test('should add multiple plugins', () => {
-    expect(withPlugins(plugin1, plugin2)({})).toEqual({
+    expect(compose(withPlugins(plugin1, plugin2))).toEqual({
       plugins: [plugin1, plugin2],
     });
   });
@@ -152,7 +221,12 @@ describe('withPlugins', () => {
     const plugin1 = new webpack.ProgressPlugin();
     const plugin2 = new webpack.SourceMapDevToolPlugin();
 
-    expect(withPlugins(plugin2)({ plugins: [plugin1] })).toEqual({
+    expect(
+      compose(
+        withPlugins(plugin2),
+        { plugins: [plugin1] },
+      ),
+    ).toEqual({
       plugins: [plugin1, plugin2],
     });
   });
@@ -170,7 +244,12 @@ describe('withRules', () => {
   };
 
   test('should add single rule', () => {
-    expect(withRules(rule1)({ module: {} } as any)).toEqual({
+    expect(
+      compose(
+        withRules(rule1),
+        { module: {} } as any,
+      ),
+    ).toEqual({
       module: {
         rules: [rule1],
       },
@@ -178,7 +257,7 @@ describe('withRules', () => {
   });
 
   test('should add multiple rules', () => {
-    expect(withRules(rule1, rule2)({})).toEqual({
+    expect(compose(withRules(rule1, rule2))).toEqual({
       module: {
         rules: [rule1, rule2],
       },
@@ -186,7 +265,12 @@ describe('withRules', () => {
   });
 
   test('should append plugins', () => {
-    expect(withRules(rule2)({ module: { rules: [rule1] } })).toEqual({
+    expect(
+      compose(
+        withRules(rule2),
+        { module: { rules: [rule1] } },
+      ),
+    ).toEqual({
       module: {
         rules: [rule1, rule2],
       },
@@ -194,25 +278,51 @@ describe('withRules', () => {
   });
 });
 
+describe('withResolve', () => {
+  test('should add resolve values', () => {
+    expect(
+      compose(
+        withResolve({
+          modules: [__dirname],
+        }),
+      ),
+    ).toEqual({
+      resolve: {
+        modules: [__dirname],
+      },
+    });
+  });
+});
+
 describe('when', () => {
   test('should execute composer only when true', () => {
-    expect(when(true, withEntry('./src'))({})).toEqual({
+    expect(compose(when(true, withEntry('./src')))).toEqual({
       entry: ['./src'],
     });
 
-    expect(when(false, withEntry('./src'))({})).toEqual({});
+    expect(compose(when(false, withEntry('./src')))).toEqual({});
   });
 
   test('should execute composer only when function returns true', () => {
     const isTrue = jest.fn().mockReturnValue(true);
     const isFalse = jest.fn().mockReturnValue(false);
 
-    expect(when(isTrue, withEntry('./src'))({ context: './' })).toEqual({
+    expect(
+      compose(
+        when(isTrue, withEntry('./src')),
+        { context: './' },
+      ),
+    ).toEqual({
       context: './',
       entry: ['./src'],
     });
 
-    expect(when(isFalse, withEntry('./src'))({ context: './' })).toEqual({
+    expect(
+      compose(
+        when(isFalse, withEntry('./src')),
+        { context: './' },
+      ),
+    ).toEqual({
       context: './',
     });
 
@@ -225,7 +335,7 @@ describe('combine', () => {
   test('should combine multiple composers into a single one', () => {
     const withEntryAndContext = combine(withEntry('./src'), withContext('./'));
 
-    expect(withEntryAndContext({})).toEqual({
+    expect(compose(withEntryAndContext)).toEqual({
       context: './',
       entry: ['./src'],
     });
@@ -235,33 +345,42 @@ describe('combine', () => {
 describe('whenProduction', () => {
   test('should execute composer in production only', () => {
     expect(
-      whenProduction(withEntry('./src'))({
-        mode: 'production',
-      }),
+      compose(
+        whenProduction(withEntry('./src')),
+        {
+          mode: 'production',
+        },
+      ),
     ).toEqual({
       mode: 'production',
       entry: ['./src'],
     });
 
-    expect(whenProduction(withEntry('./src'))({})).toEqual({});
+    expect(compose(whenProduction(withEntry('./src')))).toEqual({});
   });
 });
 
 describe('whenDevelopment', () => {
   test('should execute composer in development only', () => {
     expect(
-      whenDevelopment(withEntry('./src'))({
-        mode: 'development',
-      }),
+      compose(
+        whenDevelopment(withEntry('./src')),
+        {
+          mode: 'development',
+        },
+      ),
     ).toEqual({
       mode: 'development',
       entry: ['./src'],
     });
 
     expect(
-      whenDevelopment(withEntry('./src'))({
-        mode: 'production',
-      }),
+      compose(
+        whenDevelopment(withEntry('./src')),
+        {
+          mode: 'production',
+        },
+      ),
     ).toEqual({
       mode: 'production',
     });
