@@ -49,4 +49,4 @@ jobs:
         - npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
         - git checkout next
         - lerna version --conventional-commits --changelog-preset eslint --yes --allow-branch next
-        - lerna publish --yes
+        - lerna publish from-package --yes
