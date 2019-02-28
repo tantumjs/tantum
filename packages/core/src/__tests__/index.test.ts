@@ -117,6 +117,16 @@ describe('withDevtool', () => {
   });
 });
 
+describe('withModule', () => {
+  test('should set module', () => {
+    expect(compose(withModule({ rules: [] }))).toEqual({
+      module: {
+        rules: [],
+      },
+    });
+  });
+});
+
 describe('withDebug', () => {
   test('should set the debug flag', () => {
     expect(compose(withDebug(true))).toEqual({
