@@ -1,5 +1,5 @@
+import * as webpack from 'webpack';
 import { Composer, withRules } from '@tantum/core';
-import webpack = require('webpack');
 
 /**
  * Default babel-loader rule.
