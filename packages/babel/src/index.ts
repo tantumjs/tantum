@@ -7,6 +7,7 @@ import { Composer, withRules } from '@tantum/core';
 export const defaultRule: webpack.Rule = {
   test: /\.jsx?$/,
   use: 'babel-loader',
+  options: { presets: ['env', { modules: false }] },
 };
 
 /**
