@@ -1,6 +1,6 @@
 {
   "name": "@tantum/babel",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "lib/index.js",
   "license": "MIT",
   "files": [
@@ -9,7 +9,7 @@
   "dependencies": {
     "@babel/core": "^7.3.4",
     "@babel/preset-env": "^7.3.4",
-    "@tantum/core": "^0.1.0",
+    "@tantum/core": "^0.2.0",
     "babel-loader": "^8.0.5"
   },
   "devDependencies": {

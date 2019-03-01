@@ -1,14 +1,14 @@
 {
   "name": "@tantum/react",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "main": "lib/index.js",
   "license": "MIT",
   "files": [
     "lib"
   ],
   "dependencies": {
-    "@tantum/babel": "^0.1.0",
-    "@tantum/core": "^0.1.0",
+    "@tantum/babel": "^0.2.0",
+    "@tantum/core": "^0.2.0",
     "react": "^16.8.3",
     "react-dom": "^16.8.3",
     "react-hot-loader": "^4.7.1"
