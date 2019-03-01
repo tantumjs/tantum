@@ -9,7 +9,7 @@ describe('withBabel', () => {
           {
             test: /\.jsx?$/,
             use: 'babel-loader',
-            options: { presets: ['env', { modules: false }] },
+            options: { presets: [['env', { modules: false }]] },
           },
         ],
       },
