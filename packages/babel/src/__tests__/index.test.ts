@@ -9,6 +9,7 @@ describe('withBabel', () => {
           {
             test: /\.jsx?$/,
             use: 'babel-loader',
+            options: { presets: ['env', { modules: false }] },
           },
         ],
       },
@@ -22,10 +23,11 @@ describe('withBabel', () => {
 
     expect(
       compose(
-        withBabel({
+        withBabel(rule => ({
+          ...rule,
           include: /src/,
           options,
-        }),
+        })),
       ),
     ).toEqual({
       module: {
