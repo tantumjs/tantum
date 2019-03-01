@@ -6,6 +6,9 @@
   "files": [
     "lib"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@tantum/babel": "^0.2.0",
     "@tantum/core": "^0.2.0",
