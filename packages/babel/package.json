@@ -20,7 +20,7 @@
   },
   "scripts": {
     "test": "jest --coverage",
-    "compile": "tsc --p tsconfig.publish.json"
+    "compile": "rm -rf lib && tsc --p tsconfig.publish.json"
   },
   "jest": {
     "roots": [

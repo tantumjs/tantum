@@ -1,13 +1,15 @@
 import { withBabel } from '../';
+import { compose } from '@tantum/core';
 
 describe('withBabel', () => {
   test('should add a default babel rule', () => {
-    expect(withBabel()({})).toEqual({
+    expect(compose(withBabel())).toEqual({
       module: {
         rules: [
           {
             test: /\.jsx?$/,
             use: 'babel-loader',
+            options: { presets: [['env', { modules: false }]] },
           },
         ],
       },
@@ -20,10 +22,13 @@ describe('withBabel', () => {
     };
 
     expect(
-      withBabel({
-        include: /src/,
-        options,
-      })({}),
+      compose(
+        withBabel(rule => ({
+          ...rule,
+          include: /src/,
+          options,
+        })),
+      ),
     ).toEqual({
       module: {
         rules: [

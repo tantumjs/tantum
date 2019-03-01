@@ -1,11 +1,36 @@
 import * as webpack from 'webpack';
+import merge from 'webpack-merge';
+
+/**
+ * Merger.
+ * Function used by composers to merge configuration values.
+ */
+export interface Merger {
+  (...configurations: webpack.Configuration[]): webpack.Configuration;
+}
 
 /**
  * Composer.
  * Describes a webpack composer function.
  */
 export interface Composer {
-  (configuration: webpack.Configuration): webpack.Configuration;
+  (configuration: webpack.Configuration, merge: Merger): webpack.Configuration;
+}
+
+/**
+ * Internal composer for simple values.
+ *
+ * @param property Property to set.
+ * @param value Value to set.
+ */
+function withProperty<K extends keyof webpack.Configuration>(
+  property: K,
+  value: webpack.Configuration[K],
+): Composer {
+  return (configuration, merge) =>
+    merge(configuration, {
+      [property]: value,
+    });
 }
 
 /**
@@ -14,10 +39,7 @@ export interface Composer {
  * @param entries Entries to append.
  */
 export function withEntry(...entries: string[]): Composer {
-  return configuration => ({
-    ...configuration,
-    entry: [...(configuration.entry || []), ...entries],
-  });
+  return withProperty('entry', entries);
 }
 
 /**
@@ -26,10 +48,7 @@ export function withEntry(...entries: string[]): Composer {
  * @param context Context to set.
  */
 export function withContext(context: string): Composer {
-  return configuration => ({
-    ...configuration,
-    context,
-  });
+  return withProperty('context', context);
 }
 
 /**
@@ -40,10 +59,7 @@ export function withContext(context: string): Composer {
 export function withDevtool(
   devtool: webpack.Configuration['devtool'],
 ): Composer {
-  return configuration => ({
-    ...configuration,
-    devtool,
-  });
+  return withProperty('devtool', devtool);
 }
 
 /**
@@ -52,10 +68,7 @@ export function withDevtool(
  * @param debug Debug flag to set.
  */
 export function withDebug(debug: boolean): Composer {
-  return configuration => ({
-    ...configuration,
-    debug,
-  });
+  return withProperty('debug', debug);
 }
 
 /**
@@ -64,10 +77,7 @@ export function withDebug(debug: boolean): Composer {
  * @param mode Mode to set.
  */
 export function withMode(mode: webpack.Configuration['mode']): Composer {
-  return configuration => ({
-    ...configuration,
-    mode,
-  });
+  return withProperty('mode', mode);
 }
 
 /**
@@ -77,13 +87,7 @@ export function withMode(mode: webpack.Configuration['mode']): Composer {
  *
  */
 export function withOutput(output: webpack.Output): Composer {
-  return configuration => ({
-    ...configuration,
-    output: {
-      ...(configuration.output || {}),
-      ...output,
-    },
-  });
+  return withProperty('output', output);
 }
 
 /**
@@ -92,10 +96,7 @@ export function withOutput(output: webpack.Output): Composer {
  * @param bail Bail flag to set.
  */
 export function withBail(bail: boolean): Composer {
-  return configuration => ({
-    ...configuration,
-    bail,
-  });
+  return withProperty('bail', bail);
 }
 
 /**
@@ -104,27 +105,7 @@ export function withBail(bail: boolean): Composer {
  * @param stats Stats to set.
  */
 export function withStats(stats: webpack.Configuration['stats']): Composer {
-  return combine(
-    when(
-      configuration =>
-        typeof configuration.stats === 'object' && typeof stats === 'object',
-      configuration => ({
-        ...configuration,
-        stats: {
-          ...(configuration.stats as any),
-          ...(stats as any),
-        },
-      }),
-    ),
-    when(
-      configuration =>
-        typeof configuration.stats !== 'object' || typeof stats !== 'object',
-      configuration => ({
-        ...configuration,
-        stats,
-      }),
-    ),
-  );
+  return withProperty('stats', stats);
 }
 
 /**
@@ -133,10 +114,16 @@ export function withStats(stats: webpack.Configuration['stats']): Composer {
  * @param plugins Plugins to append.
  */
 export function withPlugins(...plugins: webpack.Plugin[]): Composer {
-  return configuration => ({
-    ...configuration,
-    plugins: [...(configuration.plugins || []), ...plugins],
-  });
+  return withProperty('plugins', plugins);
+}
+
+/**
+ * Sets the module.
+ *
+ * @param module Module to set.
+ */
+export function withModule(module: webpack.Module): Composer {
+  return withProperty('module', module);
 }
 
 /**
@@ -144,17 +131,26 @@ export function withPlugins(...plugins: webpack.Plugin[]): Composer {
  *
  * @param rules Rules to append.
  */
-export function withRules(...rules: webpack.Rule[]): Composer {
-  return configuration => ({
-    ...configuration,
-    module: {
-      ...configuration.module,
-      rules: [
-        ...(configuration.module ? configuration.module.rules || [] : []),
-        ...rules,
-      ],
-    },
+export function withRules(...rules: webpack.Rule[]) {
+  return withModule({
+    rules,
   });
+}
+
+/**
+ * Adds the hot module replacement plugin.
+ */
+export function withHotModuleReplacement() {
+  return withPlugins(new webpack.HotModuleReplacementPlugin());
+}
+
+/**
+ * Sets resolve values.
+ *
+ * @param resolve Resolve to set.
+ */
+export function withResolve(resolve: webpack.Resolve): Composer {
+  return withProperty('resolve', resolve);
 }
 
 /**
@@ -169,14 +165,14 @@ export function when(
   condition: boolean | ((configuration: webpack.Configuration) => boolean),
   composer: Composer,
 ): Composer {
-  return configuration => {
+  return (configuration, merge) => {
     const isFunctionAndTrue =
       typeof condition === 'function' && condition(configuration) === true;
     const isBooleanAndTrue =
       typeof condition === 'boolean' && condition === true;
 
     if (isBooleanAndTrue || isFunctionAndTrue) {
-      return composer(configuration);
+      return composer(configuration, merge);
     }
 
     return configuration;
@@ -192,9 +188,25 @@ export function combine(...composers: Composer[]): Composer {
   return composers
     .reverse()
     .reduce(
-      (composer, current) => configuration => composer(current(configuration)),
+      (composer, current) => (configuration, merge) =>
+        composer(current(configuration, merge), merge),
       configuration => configuration,
     );
+}
+
+/**
+ * Executes the given composer with an optional initial configuration or a custom merger.
+ *
+ * @param composer Composer to run.
+ * @param initial Initial configuration.
+ * @param merger Merger function to use.
+ */
+export function compose(
+  composer: Composer,
+  initial: webpack.Configuration = {},
+  merger: Merger = merge,
+) {
+  return composer(initial, merger);
 }
 
 /**

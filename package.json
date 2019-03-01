@@ -1,7 +1,9 @@
 {
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/core",
+    "packages/babel",
+    "packages/react"
   ],
   "dependencies": {
     "conventional-changelog-eslint": "^3.0.1",
