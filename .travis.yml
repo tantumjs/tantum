@@ -43,13 +43,18 @@ jobs:
         - ./cc-test-reporter format-coverage -t lcov ./lcov.info
         - ./cc-test-reporter upload-coverage
 
-    - stage: publish
+    - stage: version
       if: tag IS blank AND branch = next AND type != pull_request
       script:
         - npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
         - git checkout next
         - lerna version --conventional-commits --changelog-preset eslint --yes --allow-branch next
-        - lerna publish from-package --yes
         - git checkout master
         - git merge next
         - git push
+
+    - stage: publish
+      if: tag IS NOT blank AND != pull_request
+      script:
+        - npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
+        - lerna publish from-package --yes
