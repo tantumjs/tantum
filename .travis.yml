@@ -50,3 +50,6 @@ jobs:
         - git checkout next
         - lerna version --conventional-commits --changelog-preset eslint --yes --allow-branch next
         - lerna publish from-package --yes
+        - git checkout master
+        - git merge next
+        - git push
